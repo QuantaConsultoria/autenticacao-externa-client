@@ -1,0 +1,42 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:security="http://www.springframework.org/schema/security"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+http://www.springframework.org/schema/security
+http://www.springframework.org/schema/security/spring-security-2.0.xsd">
+
+    <security:http entry-point-ref="benthamRemoteAuthenticationEntryPoint">
+        <security:intercept-url pattern="/**" access="ROLE_USER" />
+    </security:http>
+    
+    <bean id="filterChainProxy" class="org.springframework.security.util.FilterChainProxy">
+        <property name="filterInvocationDefinitionSource">
+            <value>
+        <![CDATA[CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+        PATTERN_TYPE_APACHE_ANT
+        /**=benthamRemoteAuthenticationFilter]]>
+            </value>
+        </property>
+    </bean>
+    
+    <bean id="benthamRemoteAuthenticationFilter" class="com.quantaconsultoria.bentham.security.BenthamRemoteAuthenticationFilter">
+        <security:custom-filter position="AUTHENTICATION_PROCESSING_FILTER"/>
+        <property name="authenticationManager" ref="authenticationManager"/>
+        <property name="userDetailUrl" value="http://localhost:8080/bentham/me"/>
+        <property name="defaultTargetUrl" value="/Home" />
+        <property name="filterProcessesUrl" value="/bentham_remote_token_check"/>
+    </bean>
+    
+    <bean id="benthamRemoteAuthenticationEntryPoint" class="com.quantaconsultoria.bentham.security.BenthamRemoteAuthenticationEntryPoint">
+        <constructor-arg value="http://localhost:8080/bentham/autorize"/>
+        <constructor-arg value="pentaho_app"/>
+    </bean>
+    
+    <bean id="benthamRemoteAuthenticationProvider" class="com.quantaconsultoria.bentham.security.BenthamRemoteAuthenticationProvider">
+        <security:custom-authentication-provider/>
+    </bean>
+    
+    <security:authentication-manager alias="authenticationManager" />
+    
+</beans>
